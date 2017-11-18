@@ -55,8 +55,8 @@ def pcl_callback(pcl_msg):
     cloud = ros_to_pcl(pcl_msg)
     # TODO: Statistical Outlier Filtering
     outlierfilter = cloud.make_statistical_outlier_filter()
-    outlierfilter.set_mean_k(10)                          #needs to be tuned, ev 20!
-    outlierfilter.set_std_dev_mul_thresh(0.2)             #needs to be tuned, ev 0.3!
+    outlierfilter.set_mean_k(10)                          		
+    outlierfilter.set_std_dev_mul_thresh(0.2)             		
     outlierfilter_cloud = outlierfilter.filter()
 
     # TODO: Voxel Grid Downsampling
@@ -207,9 +207,9 @@ def pr2_mover(object_list):
     for found_object in object_list:
         # Get arm and place position for found object
         for obj_param in object_list_param:
-            if obj_param['name'] == found_object.label:      #ex: name:  sticky_notes
+            if obj_param['name'] == found_object.label:      
                 for dropbox_param in dropbox_list_param:
-                    if dropbox_param['group'] == obj_param['group']: #    group: red
+                    if dropbox_param['group'] == obj_param['group']: 
                         arm_name.data = dropbox_param['name']
                         place_pose.position.x = dropbox_param['position'][0]
                         place_pose.position.y = dropbox_param['position'][1]
