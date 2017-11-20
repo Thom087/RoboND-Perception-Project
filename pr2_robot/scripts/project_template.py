@@ -100,8 +100,6 @@ def pcl_callback(pcl_msg):
     ec = white_cloud.make_EuclideanClusterExtraction()
     # Set tolerances for distance threshold 
     # as well as minimum and maximum cluster size (in points)
-    # NOTE: These are poor choices of clustering parameters
-    # Your task is to experiment and find values that work for segmenting objects.
     ec.set_ClusterTolerance(0.025) # [m]     0.05 to 0.006 is possible!   
     ec.set_MinClusterSize(30)   #20-50
     ec.set_MaxClusterSize(2500) #2500-3000 
@@ -199,7 +197,7 @@ def pr2_mover(object_list):
 
     # Get the test_scene
     test_scene_num = Int32()
-    test_scene_num.data = 3
+    test_scene_num.data = 1
 
     #TODO: Rotate PR2 in place to capture side tables for the collision map
 
@@ -207,16 +205,15 @@ def pr2_mover(object_list):
     for found_object in object_list:
         # Get arm and place position for found object
         for obj_param in object_list_param:
-            if obj_param['name'] == found_object.label:      
+            if obj_param['name'] == found_object.label: 
+                # Get object_name
+                object_name.data = obj_param['name']    
                 for dropbox_param in dropbox_list_param:
                     if dropbox_param['group'] == obj_param['group']: 
                         arm_name.data = dropbox_param['name']
                         place_pose.position.x = dropbox_param['position'][0]
                         place_pose.position.y = dropbox_param['position'][1]
                         place_pose.position.z = dropbox_param['position'][2] 
-
-        # Get object_name 
-        object_name.data = found_object.label  
 
         # Get the PointCloud for a given object and obtain it's centroid
         points_arr = ros_to_pcl(found_object.cloud).to_array()
@@ -228,35 +225,21 @@ def pr2_mover(object_list):
         pick_pose.position.z =  np.asscalar(centroids[2])
 
         # Create a list of dictionaries for later output to yaml format
-        # print type(test_scene_num)
-        # print type(arm_name)
-        # print type(object_name)
-        # print type(pick_pose)
-        # print type(place_pose)        
-
         yaml_dict = make_yaml_dict(test_scene_num, arm_name, object_name, pick_pose, place_pose)
-        # print type(yaml_dict)
         found_object_list.append(yaml_dict)
 
         # Wait for 'pick_place_routine' service to come up
-        # rospy.wait_for_service('pick_place_routine')
+        rospy.wait_for_service('pick_place_routine')
 
-        # try:
-        #     pick_place_routine = rospy.ServiceProxy('pick_place_routine', PickPlace)
-        #     resp = pick_place_routine(test_scene_num, object_name, arm_name, pick_pose, place_pose)
-        #     print ("Response: ",resp.success)
-        # except rospy.ServiceException, e:
-        #     print "Service call failed: %s"%e
+        try:
+            pick_place_routine = rospy.ServiceProxy('pick_place_routine', PickPlace)
+            resp = pick_place_routine(test_scene_num, object_name, arm_name, pick_pose, place_pose)
+            print ("Response: ",resp.success)
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
     
     # Output your request parameters into output yaml file
-    print(found_object_list)
-    found_object_list_1 = [{'pick_pose': {'position': {'y': -0.24161694943904877, 'x': 0.5417450070381165, 'z': 0.7078601121902466}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'biscuits', 'arm_name': 'right', 'test_scene_num': 1, 'place_pose': {'position': {'y': -0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': -0.018573442474007607, 'x': 0.5451306700706482, 'z': 0.6788676381111145}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'soap', 'arm_name': 'right', 'test_scene_num': 1, 'place_pose': {'position': {'y': -0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': 0.22113841772079468, 'x': 0.44502589106559753, 'z': 0.6774849891662598}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'soap2', 'arm_name': 'left', 'test_scene_num': 1, 'place_pose': {'position': {'y': 0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}]
-    found_object_list_2 = [{'pick_pose': {'position': {'y': -0.2482011914253235, 'x': 0.5714076161384583, 'z': 0.7075303196907043}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'biscuits', 'arm_name': 'right', 'test_scene_num': 2, 'place_pose': {'position': {'y': -0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': 0.28063562512397766, 'x': 0.57878178358078, 'z': 0.7251813411712646}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'book', 'arm_name': 'left', 'test_scene_num': 2, 'place_pose': {'position': {'y': 0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': 0.0032798885367810726, 'x': 0.5604441165924072, 'z': 0.6784940958023071}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'soap', 'arm_name': 'right', 'test_scene_num': 2, 'place_pose': {'position': {'y': -0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': 0.22637546062469482, 'x': 0.44474127888679504, 'z': 0.6779228448867798}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'soap2', 'arm_name': 'left', 'test_scene_num': 2, 'place_pose': {'position': {'y': 0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': 0.13076139986515045, 'x': 0.631182849407196, 'z': 0.6814020872116089}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'glue', 'arm_name': 'left', 'test_scene_num': 2, 'place_pose': {'position': {'y': 0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}]
-    found_object_list_3 = [{'pick_pose': {'position': {'y': -0.33336472511291504, 'x': 0.42694416642189026, 'z': 0.7539376616477966}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'snacks', 'arm_name': 'right', 'test_scene_num': 3, 'place_pose': {'position': {'y': -0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': -0.2188907265663147, 'x': 0.5885148048400879, 'z': 0.7069919109344482}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'biscuits', 'arm_name': 'right', 'test_scene_num': 3, 'place_pose': {'position': {'y': -0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': 0.0837712287902832, 'x': 0.4920927584171295, 'z': 0.7278702855110168}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'book', 'arm_name': 'left', 'test_scene_num': 3, 'place_pose': {'position': {'y': 0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': 0.004273122176527977, 'x': 0.679726779460907, 'z': 0.6785259246826172}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'soap', 'arm_name': 'right', 'test_scene_num': 3, 'place_pose': {'position': {'y': -0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': 0.2825091779232025, 'x': 0.6089900732040405, 'z': 0.6489030122756958}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'glue', 'arm_name': 'left', 'test_scene_num': 3, 'place_pose': {'position': {'y': 0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': -0.04341802000999451, 'x': 0.4535926580429077, 'z': 0.6775612831115723}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'soap2', 'arm_name': 'right', 'test_scene_num': 3, 'place_pose': {'position': {'y': -0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': 0.21492159366607666, 'x': 0.439584344625473, 'z': 0.6879236698150635}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'sticky_notes', 'arm_name': 'left', 'test_scene_num': 3, 'place_pose': {'position': {'y': 0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}, {'pick_pose': {'position': {'y': 0.1392841637134552, 'x': 0.613884449005127, 'z': 0.6877523064613342}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}, 'object_name': 'glue', 'arm_name': 'left', 'test_scene_num': 3, 'place_pose': {'position': {'y': 0.71, 'x': 0, 'z': 0.605}, 'orientation': {'y': 0.0, 'x': 0.0, 'z': 0.0, 'w': 0.0}}}]
-    # if found_object_list != found_object_list_3:
-    #     print("not the same!!")
     send_to_yaml('output_{}.yaml'.format(str(test_scene_num.data)), found_object_list)
-
 
 
 if __name__ == '__main__':

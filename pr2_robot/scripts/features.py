@@ -78,9 +78,9 @@ def compute_normal_histograms(normal_cloud):
         # if min_z > min(norm_z_vals):
         #     min_z = min(norm_z_vals)   
         
-        norm_x_hist = np.histogram(norm_x_vals, bins=32, range=(0, 1)) 
-        norm_y_hist = np.histogram(norm_y_vals, bins=32, range=(0, 1))
-        norm_z_hist = np.histogram(norm_z_vals, bins=32, range=(0, 1))
+        norm_x_hist = np.histogram(norm_x_vals, bins=32, range=(-1, 1)) 
+        norm_y_hist = np.histogram(norm_y_vals, bins=32, range=(-1, 1))
+        norm_z_hist = np.histogram(norm_z_vals, bins=32, range=(-1, 1))
     	
         # Concatenate and normalize the histograms
         hist_features = np.concatenate((norm_x_hist[0], norm_y_hist[0], norm_z_hist[0])).astype(np.float64)
@@ -90,6 +90,6 @@ def compute_normal_histograms(normal_cloud):
         # Replace normed_features with your feature vector
         #normed_features = np.random.random(96)
     # print("This is norm_x_vals max: ", max_x, ", min: ", min_x)
-    # print("This is norm_y_vals: ", max_x, ", min: ", min_x)
-    # print("This is norm_z_vals: ", max_x, ", min: ", min_x)
+    # print("This is norm_y_vals: ", max_y, ", min: ", min_y)
+    # print("This is norm_z_vals: ", max_z, ", min: ", min_z)
     return normed_features
