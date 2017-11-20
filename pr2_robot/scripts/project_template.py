@@ -197,7 +197,7 @@ def pr2_mover(object_list):
 
     # Get the test_scene
     test_scene_num = Int32()
-    test_scene_num.data = 1
+    test_scene_num.data = 3
 
     #TODO: Rotate PR2 in place to capture side tables for the collision map
 
